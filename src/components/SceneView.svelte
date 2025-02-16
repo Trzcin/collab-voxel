@@ -27,6 +27,7 @@
     $effect(() => {
         renderer.setSize(rootSize.width, rootSize.height);
         camera.aspect = rootSize.width / rootSize.height;
+        camera.updateProjectionMatrix();
     })
     
     /** Main rendering loop */
