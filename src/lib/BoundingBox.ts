@@ -1,4 +1,4 @@
-import { GridHelper, Group, Plane, Vector3, type Camera } from 'three';
+import { GridHelper, Group, Plane, Vector3 } from 'three';
 
 type GridAxes = 'xy' | 'xz' | 'yx' | 'yz' | 'zx' | 'zy';
 
