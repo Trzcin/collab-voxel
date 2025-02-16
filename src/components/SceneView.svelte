@@ -7,6 +7,7 @@
     let root: HTMLDivElement;
     let rootSize = $state({ width: 0, height: 0 });
 
+    const SCENE_SIZE = 7;
     const renderer = new WebGLRenderer();
     const camera = new PerspectiveCamera(45, 1, 1, 10000);
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -16,27 +17,40 @@
         MIDDLE: MOUSE.PAN,
     };
     camera.position.set(20, 20, 20);
+    controls.target.set(SCENE_SIZE / 2, 0, SCENE_SIZE / 2);
     controls.update();
     controls.saveState();
-    const sceneState = new SceneState(camera.position, 7);
+    const sceneState = new SceneState(camera.position, SCENE_SIZE);
 
     onMount(() => {
         root.appendChild(renderer.domElement);
-        renderer.setAnimationLoop(animate);
     });
 
     $effect(() => {
         renderer.setSize(rootSize.width, rootSize.height);
         camera.aspect = rootSize.width / rootSize.height;
         camera.updateProjectionMatrix();
+        sceneState.cameraUpdate();
+        requestRender();
     });
 
-    /** Main rendering loop */
-    function animate() {
-        sceneState.update();
-        controls.update();
-        renderer.render(sceneState.scene, camera);
+    let renderRequested = false;
+    /** Schedules a render on demand.
+     *  The `renderRequested` flag is used to prevent duplicate renders.
+     */
+    function requestRender() {
+        if (!renderRequested) {
+            renderRequested = true;
+            requestAnimationFrame(() => {
+                renderRequested = false;
+                renderer.render(sceneState.scene, camera);
+            });
+        }
     }
+    controls.addEventListener('change', () => {
+        sceneState.cameraUpdate();
+        requestRender();
+    });
 
     function handleKey(ev: KeyboardEvent) {
         if (ev.key === 'r') controls.reset();

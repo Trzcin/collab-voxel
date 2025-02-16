@@ -1,4 +1,4 @@
-import { AxesHelper, Scene, type Vector3 } from 'three';
+import { Scene, type Vector3 } from 'three';
 import { BoundingBox } from './BoundingBox';
 
 export class SceneState {
@@ -11,10 +11,12 @@ export class SceneState {
     ) {
         this.boundingBox = new BoundingBox(this.sceneSize);
         this.scene.add(this.boundingBox.object);
-        this.scene.add(new AxesHelper(20));
     }
 
-    public update() {
+    /** Call this function when the scene is about to be rerendered due to camera movement.
+     *  It will update elements dependent on the camera position.
+     */
+    public cameraUpdate() {
         this.boundingBox.update(this.cameraPos);
     }
 }
