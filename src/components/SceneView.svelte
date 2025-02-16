@@ -10,7 +10,7 @@
     const renderer = new WebGLRenderer();
     const camera = new PerspectiveCamera(45, 1, 1, 10000);
     const controls = new OrbitControls(camera, renderer.domElement);
-    const sceneState = new SceneState(camera.position, new Vector3(10, 10, 10));
+    const sceneState = new SceneState(camera.position, 7);
     camera.position.set(20, 20, 20);
     controls.update();
 

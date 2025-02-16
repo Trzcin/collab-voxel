@@ -1,4 +1,4 @@
-import { Scene, type Vector3 } from 'three';
+import { AxesHelper, Scene, type Vector3 } from 'three';
 import { BoundingBox } from './BoundingBox';
 
 export class SceneState {
@@ -7,10 +7,11 @@ export class SceneState {
 
     constructor(
         public cameraPos: Vector3,
-        private sceneSize: Vector3,
+        private sceneSize: number,
     ) {
         this.boundingBox = new BoundingBox(this.sceneSize);
         this.scene.add(this.boundingBox.object);
+        this.scene.add(new AxesHelper(20));
     }
 
     public update() {

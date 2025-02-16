@@ -2,73 +2,74 @@ import { GridHelper, Group, Plane, Vector3, type Camera } from 'three';
 
 type GridAxes = 'xy' | 'xz' | 'yx' | 'yz' | 'zx' | 'zy';
 
+/** Draws a box around the scene.
+ *  Only edges on faces viewed from inside the scene are visible to the camera.
+ *  By default a grid is also drawn on each visible face.
+ *  Currently it is limited to cube scene sizes due to the `GridHelper` class.
+ * */
 export class BoundingBox {
     public object = new Group();
     private faces: Record<GridAxes, { plane: Plane; grid: GridHelper }>;
 
-    constructor(
-        private boxSize: Vector3,
-        private showGrid = true,
-    ) {
-        const boundsSize = 5;
-        const divisions = showGrid ? boundsSize * 2 : 1;
+    constructor(boxSize: number, showGrid = true) {
+        const divisions = showGrid ? boxSize : 1;
         const color = '#fff';
 
         // Setup planes and grids for all box faces
         this.faces = {
             xy: {
                 plane: new Plane(new Vector3(1, 0, 0), 0),
-                grid: new GridHelper(boundsSize * 2, divisions, color, color),
+                grid: new GridHelper(boxSize, divisions, color, color),
             },
             xz: {
-                plane: new Plane(new Vector3(1, 0, 0), boundsSize * -2),
-                grid: new GridHelper(boundsSize * 2, divisions, color, color),
+                plane: new Plane(new Vector3(1, 0, 0), -boxSize),
+                grid: new GridHelper(boxSize, divisions, color, color),
             },
             yx: {
                 plane: new Plane(new Vector3(0, 1, 0), 0),
-                grid: new GridHelper(boundsSize * 2, divisions, color, color),
+                grid: new GridHelper(boxSize, divisions, color, color),
             },
             yz: {
-                plane: new Plane(new Vector3(0, 1, 0), boundsSize * -2),
-                grid: new GridHelper(boundsSize * 2, divisions, color, color),
+                plane: new Plane(new Vector3(0, 1, 0), -boxSize),
+                grid: new GridHelper(boxSize, divisions, color, color),
             },
             zx: {
                 plane: new Plane(new Vector3(0, 0, 1), 0),
-                grid: new GridHelper(boundsSize * 2, divisions, color, color),
+                grid: new GridHelper(boxSize, divisions, color, color),
             },
             zy: {
-                plane: new Plane(new Vector3(0, 0, 1), boundsSize * -2),
-                grid: new GridHelper(boundsSize * 2, divisions, color, color),
+                plane: new Plane(new Vector3(0, 0, 1), -boxSize),
+                grid: new GridHelper(boxSize, divisions, color, color),
             },
         };
 
         // Position and rotate grids
         this.faces.xy.grid.position.x += 0;
-        this.faces.xy.grid.position.y += boundsSize;
-        this.faces.xy.grid.position.z += boundsSize;
+        this.faces.xy.grid.position.y += boxSize / 2;
+        this.faces.xy.grid.position.z += boxSize / 2;
         this.faces.xy.grid.rotateZ(Math.PI / 2);
 
-        this.faces.xz.grid.position.x += boundsSize * 2;
-        this.faces.xz.grid.position.y += boundsSize;
-        this.faces.xz.grid.position.z += boundsSize;
+        this.faces.xz.grid.position.x += boxSize;
+        this.faces.xz.grid.position.y += boxSize / 2;
+        this.faces.xz.grid.position.z += boxSize / 2;
         this.faces.xz.grid.rotateZ(Math.PI / 2);
 
-        this.faces.yx.grid.position.x += boundsSize;
+        this.faces.yx.grid.position.x += boxSize / 2;
         this.faces.yx.grid.position.y += 0;
-        this.faces.yx.grid.position.z += boundsSize;
+        this.faces.yx.grid.position.z += boxSize / 2;
 
-        this.faces.yz.grid.position.x += boundsSize;
-        this.faces.yz.grid.position.y += boundsSize * 2;
-        this.faces.yz.grid.position.z += boundsSize;
+        this.faces.yz.grid.position.x += boxSize / 2;
+        this.faces.yz.grid.position.y += boxSize;
+        this.faces.yz.grid.position.z += boxSize / 2;
 
-        this.faces.zx.grid.position.x += boundsSize;
-        this.faces.zx.grid.position.y += boundsSize;
+        this.faces.zx.grid.position.x += boxSize / 2;
+        this.faces.zx.grid.position.y += boxSize / 2;
         this.faces.zx.grid.position.z += 0;
         this.faces.zx.grid.rotateX(Math.PI / 2);
 
-        this.faces.zy.grid.position.x += boundsSize;
-        this.faces.zy.grid.position.y += boundsSize;
-        this.faces.zy.grid.position.z += boundsSize * 2;
+        this.faces.zy.grid.position.x += boxSize / 2;
+        this.faces.zy.grid.position.y += boxSize / 2;
+        this.faces.zy.grid.position.z += boxSize;
         this.faces.zy.grid.rotateX(Math.PI / 2);
 
         // Add all grids to the group
