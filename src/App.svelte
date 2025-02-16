@@ -1,1 +1,5 @@
-<h1>Collab Voxel</h1>
+<script lang="ts">
+    import SceneView from "./components/SceneView.svelte";
+</script>
+
+<SceneView />
