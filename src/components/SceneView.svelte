@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { MOUSE, PerspectiveCamera, WebGLRenderer } from 'three';
+    import { MOUSE, PerspectiveCamera, Vector2, WebGLRenderer } from 'three';
     import { OrbitControls } from 'three/examples/jsm/Addons.js';
     import { SceneState } from '../lib/SceneState';
 
@@ -20,7 +20,7 @@
     controls.target.set(SCENE_SIZE / 2, 0, SCENE_SIZE / 2);
     controls.update();
     controls.saveState();
-    const sceneState = new SceneState(camera.position, SCENE_SIZE);
+    const sceneState = new SceneState(camera, SCENE_SIZE);
 
     onMount(() => {
         root.appendChild(renderer.domElement);
@@ -51,9 +51,19 @@
         sceneState.cameraUpdate();
         requestRender();
     });
+    sceneState.onChange = requestRender;
 
     function handleKey(ev: KeyboardEvent) {
         if (ev.key === 'r') controls.reset();
+    }
+
+    function handlePointerMove(ev: PointerEvent) {
+        sceneState.updateSelection(
+            new Vector2(
+                (ev.clientX / rootSize.width) * 2 - 1,
+                (ev.clientY / rootSize.height) * -2 + 1,
+            ),
+        );
     }
 </script>
 
@@ -63,6 +73,7 @@
     bind:this={root}
     bind:clientWidth={rootSize.width}
     bind:clientHeight={rootSize.height}
+    onpointermove={handlePointerMove}
 ></div>
 
 <style>
