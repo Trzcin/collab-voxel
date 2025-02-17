@@ -21,6 +21,7 @@ export class SceneState {
     private raycaster = new Raycaster();
     private voxelMesh: Mesh;
     private selectionMesh: Mesh;
+    private lastPointer?: Vector2;
 
     constructor(
         public camera: Camera,
@@ -60,6 +61,7 @@ export class SceneState {
      *  @param pointer Pointer position on the canvas, both x and y axes values should range from -1 to 1.
      */
     public updateSelection(pointer: Vector2) {
+        this.lastPointer = pointer;
         this.raycaster.setFromCamera(pointer, this.camera);
         const intersections = this.raycaster.intersectObject(this.voxelMesh);
         if (intersections.length === 0 || !intersections[0].normal) {
@@ -77,16 +79,24 @@ export class SceneState {
             normal.z === 0 ? 1 : normal.z,
         );
         offset.multiplyVectors(offset, new Vector3(0.5, 0.5, 0.5));
-        const intersectionPos = floorWithToleration(
+        const voxelPos = floorWithToleration(
             intersections[0].point.clone(),
             0.001,
-        ).add(offset);
-        if (this.selection && intersectionPos.equals(this.selection)) return;
+        );
+        if (this.selection && voxelPos.equals(this.selection)) return;
 
-        this.selection = intersectionPos;
-        this.selectionMesh.position.copy(this.selection);
+        this.selection = voxelPos;
+        this.selectionMesh.position.copy(voxelPos.clone().add(offset));
         this.selectionMesh.visible = true;
         this.onChange?.();
+    }
+    
+    /** Places a voxel at the current selection */
+    public placeVoxel() {
+        if (!this.selection) return;
+        this.data.setVoxel(this.selection, new Color(Color.NAMES.white));
+        this.onChange?.();
+        if (this.lastPointer) this.updateSelection(this.lastPointer);
     }
 }
 

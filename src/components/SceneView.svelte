@@ -69,11 +69,14 @@
 
 <svelte:window onkeydown={handleKey} />
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
     bind:this={root}
     bind:clientWidth={rootSize.width}
     bind:clientHeight={rootSize.height}
     onpointermove={handlePointerMove}
+    onclick={() => sceneState.placeVoxel()}
 ></div>
 
 <style>

@@ -18,6 +18,7 @@ type VoxelData = {
 export class SceneData {
     /** A string is used for the key since using Y.Map in the future requires keys to be strings. */
     private map = new Map<string, VoxelData>();
+    private geometry?: BufferGeometry;
 
     constructor() {}
 
@@ -25,27 +26,14 @@ export class SceneData {
         this.map.set(this.vecToKey(position), {
             color: { r: color.r, g: color.g, b: color.b },
         });
+        this.updateGeometry();
     }
 
     public getVoxelMesh(): Mesh {
-        const { positions, normals, indicies, colors } =
-            this.generateGeometry();
-        const geometry = new BufferGeometry();
         const material = new MeshBasicMaterial({ vertexColors: true });
-        geometry.setAttribute(
-            'position',
-            new BufferAttribute(new Float32Array(positions), 3),
-        );
-        geometry.setAttribute(
-            'normal',
-            new BufferAttribute(new Float32Array(normals), 3),
-        );
-        geometry.setAttribute(
-            'color',
-            new BufferAttribute(new Float32Array(colors), 3),
-        );
-        geometry.setIndex(indicies);
-        return new Mesh(geometry, material);
+        this.geometry = new BufferGeometry();
+        this.updateGeometry();
+        return new Mesh(this.geometry, material);
     }
 
     /** This function generates geometry data for all voxels in the scene. */
@@ -87,13 +75,34 @@ export class SceneData {
             colors,
         };
     }
+    
+    /** Call this when the voxel mesh geomtry buffer should be updated. */
+    private updateGeometry() {
+        if (!this.geometry) return;
+
+        const { positions, normals, indicies, colors } =
+            this.generateGeometry();
+        this.geometry.setAttribute(
+            'position',
+            new BufferAttribute(new Float32Array(positions), 3),
+        );
+        this.geometry.setAttribute(
+            'normal',
+            new BufferAttribute(new Float32Array(normals), 3),
+        );
+        this.geometry.setAttribute(
+            'color',
+            new BufferAttribute(new Float32Array(colors), 3),
+        );
+        this.geometry.setIndex(indicies);
+    }
 
     /** Converts a voxel position to a key for the map storage. */
     private vecToKey(vec: Vector3): string {
         return `${vec.x},${vec.y},${vec.z}`;
     }
 
-    /** Convert a key used for map storage into a voxel position. */
+    /** Converts a key used for map storage into a voxel position. */
     private keyToVec(key: string): Vector3 {
         const parts = key.split(',').map((p) => Number(p));
         return new Vector3(parts[0], parts[1], parts[2]);
