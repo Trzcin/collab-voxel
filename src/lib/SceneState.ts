@@ -69,10 +69,7 @@ export class SceneState {
         );
         const intersection = this.intersectRay(rayStart, rayEnd);
         if (!intersection) {
-            if ((this.selection = null)) return;
-            this.selection = null;
-            this.selectionMesh.visible = false;
-            this.onChange?.();
+            this.clearSelection();
             return;
         }
 
@@ -84,6 +81,11 @@ export class SceneState {
         );
         offset.multiplyVectors(offset, new Vector3(0.5, 0.5, 0.5));
         const voxelPos = position.clone().add(normal);
+        
+        if (!this.isInBounds(voxelPos)) {
+            this.clearSelection();
+            return;
+        }
 
         if (this.selection && voxelPos.equals(this.selection)) return;
 
@@ -207,13 +209,11 @@ export class SceneState {
     private isInBounds(position: Vector3): boolean {
         return position.x >= 0 && position.x < this.sceneSize && position.y >= 0 && position.y < this.sceneSize && position.z >= 0 && position.z < this.sceneSize;
     }
-}
-
-/** This function acts like `Vector3.floor` however if the value is very close to the next integer value, it will be rounded up instead. */
-function floorWithToleration(vec: Vector3, toleration: number): Vector3 {
-    const ceiled = vec.clone().ceil();
-    vec.x = ceiled.x - vec.x <= toleration ? ceiled.x : ceiled.x - 1;
-    vec.y = ceiled.y - vec.y <= toleration ? ceiled.y : ceiled.y - 1;
-    vec.z = ceiled.z - vec.z <= toleration ? ceiled.z : ceiled.z - 1;
-    return vec;
+    
+    private clearSelection() {
+        if (!this.selection) return;
+        this.selection = null;
+        this.selectionMesh.visible = false;
+        this.onChange?.();
+    }
 }
