@@ -18,7 +18,6 @@ export class SceneState {
     public selection: Vector3 | null = null;
     public onChange?: () => void;
     private boundingBox: BoundingBox;
-    private raycaster = new Raycaster();
     private voxelMesh: Mesh;
     private selectionMesh: Mesh;
     private lastPointer?: Vector2;
@@ -62,9 +61,14 @@ export class SceneState {
      */
     public updateSelection(pointer: Vector2) {
         this.lastPointer = pointer;
-        this.raycaster.setFromCamera(pointer, this.camera);
-        const intersections = this.raycaster.intersectObject(this.voxelMesh);
-        if (intersections.length === 0 || !intersections[0].normal) {
+        const rayStart = new Vector3().setFromMatrixPosition(
+            this.camera.matrixWorld,
+        );
+        const rayEnd = new Vector3(pointer.x, pointer.y, 1).unproject(
+            this.camera,
+        );
+        const intersection = this.intersectRay(rayStart, rayEnd);
+        if (!intersection) {
             if ((this.selection = null)) return;
             this.selection = null;
             this.selectionMesh.visible = false;
@@ -72,17 +76,15 @@ export class SceneState {
             return;
         }
 
-        const normal = intersections[0].normal;
+        const { position, normal } = intersection;
         const offset = new Vector3(
             normal.x === 0 ? 1 : normal.x,
             normal.y === 0 ? 1 : normal.y,
             normal.z === 0 ? 1 : normal.z,
         );
         offset.multiplyVectors(offset, new Vector3(0.5, 0.5, 0.5));
-        const voxelPos = floorWithToleration(
-            intersections[0].point.clone(),
-            0.001,
-        );
+        const voxelPos = position.clone().add(normal);
+
         if (this.selection && voxelPos.equals(this.selection)) return;
 
         this.selection = voxelPos;
@@ -90,13 +92,120 @@ export class SceneState {
         this.selectionMesh.visible = true;
         this.onChange?.();
     }
-    
+
     /** Places a voxel at the current selection */
     public placeVoxel() {
         if (!this.selection) return;
         this.data.setVoxel(this.selection, new Color(Color.NAMES.white));
         this.onChange?.();
         if (this.lastPointer) this.updateSelection(this.lastPointer);
+    }
+
+    private intersectRay(
+        start: Vector3,
+        end: Vector3,
+    ): { position: Vector3; normal: Vector3 } | null {
+        const dir = end.clone().sub(start);
+        const len = dir.length();
+        dir.normalize();
+        const intPos = start.clone().floor();
+        const step = new Vector3(
+            dir.x > 0 ? 1 : -1,
+            dir.y > 0 ? 1 : -1,
+            dir.z > 0 ? 1 : -1,
+        );
+        const tDelta = new Vector3(
+            Math.abs(1 / dir.x),
+            Math.abs(1 / dir.y),
+            Math.abs(1 / dir.z),
+        );
+        const dist = new Vector3(
+            step.x > 0 ? intPos.x + 1 - start.x : start.x - intPos.x,
+            step.y > 0 ? intPos.y + 1 - start.y : start.y - intPos.y,
+            step.z > 0 ? intPos.z + 1 - start.z : start.z - intPos.z,
+        );
+        // location of nearest voxel boundary, in units of t
+        const tMax = new Vector3(
+            tDelta.x < Infinity ? tDelta.x * dist.x : Infinity,
+            tDelta.y < Infinity ? tDelta.y * dist.y : Infinity,
+            tDelta.z < Infinity ? tDelta.z * dist.z : Infinity,
+        );
+
+        let steppedIndex = -1;
+        let t = 0.0;
+        let insideBounds: Vector3 | null = null;
+
+        // main loop along raycast vector
+        while (t <= len) {
+            if (this.data.hasVoxel(intPos)) {
+                return {
+                    position: intPos,
+                    normal: new Vector3(
+                        steppedIndex === 0 ? -step.x : 0,
+                        steppedIndex === 1 ? -step.y : 0,
+                        steppedIndex === 2 ? -step.z : 0,
+                    ),
+                };
+            }
+
+            const boundsNormal = this.intersectsBounds(intPos);
+            if (boundsNormal) {
+                if (!insideBounds) {
+                    insideBounds = boundsNormal;
+                }
+                else if (!boundsNormal.equals(insideBounds)) {
+                    return {
+                        position: intPos.sub(boundsNormal),
+                        normal: boundsNormal
+                    }                    
+                }
+            }
+
+            // advance t to next nearest voxel boundary
+            if (tMax.x < tMax.y) {
+                if (tMax.x < tMax.z) {
+                    intPos.x += step.x;
+                    t = tMax.x;
+                    tMax.x += tDelta.x;
+                    steppedIndex = 0;
+                } else {
+                    intPos.z += step.z;
+                    t = tMax.z;
+                    tMax.z += tDelta.z;
+                    steppedIndex = 2;
+                }
+            } else {
+                if (tMax.y < tMax.z) {
+                    intPos.y += step.y;
+                    t = tMax.y;
+                    tMax.y += tDelta.y;
+                    steppedIndex = 1;
+                } else {
+                    intPos.z += step.z;
+                    t = tMax.z;
+                    tMax.z += tDelta.z;
+                    steppedIndex = 2;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /** Returns a normal vector if this voxel position is next to the bounds. */
+    private intersectsBounds(position: Vector3): Vector3 | null {
+        if (!this.isInBounds(position)) return null;
+        if (position.x === 0) return new Vector3(1, 0, 0);
+        if (position.x === this.sceneSize - 1) return new Vector3(-1, 0, 0);
+        if (position.y === 0) return new Vector3(0, 1, 0);
+        if (position.y === this.sceneSize - 1) return new Vector3(0, -1, 0);
+        if (position.z === 0) return new Vector3(0, 0, 1);
+        if (position.z === this.sceneSize - 1) return new Vector3(0, 0, -1);
+        return null;
+    }
+    
+    private isInBounds(position: Vector3): boolean {
+        return position.x >= 0 && position.x < this.sceneSize && position.y >= 0 && position.y < this.sceneSize && position.z >= 0 && position.z < this.sceneSize;
     }
 }
 

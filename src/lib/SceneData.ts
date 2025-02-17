@@ -28,6 +28,10 @@ export class SceneData {
         });
         this.updateGeometry();
     }
+    
+    public hasVoxel(position: Vector3) {
+        return this.map.has(this.vecToKey(position));
+    }
 
     public getVoxelMesh(): Mesh {
         const material = new MeshBasicMaterial({ vertexColors: true });
