@@ -4,7 +4,6 @@ import {
     Color,
     Mesh,
     MeshBasicMaterial,
-    Raycaster,
     Scene,
     Vector2,
     Vector3,
@@ -81,7 +80,7 @@ export class SceneState {
         );
         offset.multiplyVectors(offset, new Vector3(0.5, 0.5, 0.5));
         const voxelPos = position.clone().add(normal);
-        
+
         if (!this.isInBounds(voxelPos)) {
             this.clearSelection();
             return;
@@ -154,12 +153,11 @@ export class SceneState {
             if (boundsNormal) {
                 if (!insideBounds) {
                     insideBounds = boundsNormal;
-                }
-                else if (!boundsNormal.equals(insideBounds)) {
+                } else if (!boundsNormal.equals(insideBounds)) {
                     return {
                         position: intPos.sub(boundsNormal),
-                        normal: boundsNormal
-                    }                    
+                        normal: boundsNormal,
+                    };
                 }
             }
 
@@ -205,11 +203,18 @@ export class SceneState {
         if (position.z === this.sceneSize - 1) return new Vector3(0, 0, -1);
         return null;
     }
-    
+
     private isInBounds(position: Vector3): boolean {
-        return position.x >= 0 && position.x < this.sceneSize && position.y >= 0 && position.y < this.sceneSize && position.z >= 0 && position.z < this.sceneSize;
+        return (
+            position.x >= 0 &&
+            position.x < this.sceneSize &&
+            position.y >= 0 &&
+            position.y < this.sceneSize &&
+            position.z >= 0 &&
+            position.z < this.sceneSize
+        );
     }
-    
+
     private clearSelection() {
         if (!this.selection) return;
         this.selection = null;
