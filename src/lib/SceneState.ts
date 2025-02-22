@@ -73,12 +73,7 @@ export class SceneState {
         }
 
         const { position, normal } = intersection;
-        const offset = new Vector3(
-            normal.x === 0 ? 1 : normal.x,
-            normal.y === 0 ? 1 : normal.y,
-            normal.z === 0 ? 1 : normal.z,
-        );
-        offset.multiplyVectors(offset, new Vector3(0.5, 0.5, 0.5));
+        const offset = new Vector3(0.5, 0.5, 0.5);
         const voxelPos = position.clone().add(normal);
 
         if (!this.isInBounds(voxelPos)) {
@@ -153,9 +148,21 @@ export class SceneState {
             if (boundsNormal) {
                 if (!insideBounds) {
                     insideBounds = boundsNormal;
-                } else if (!boundsNormal.equals(insideBounds)) {
+                } else if (
+                    (insideBounds.x !== 0 &&
+                        boundsNormal.x === -1 * insideBounds.x) ||
+                    (insideBounds.x === 0 && boundsNormal.x !== 0) ||
+                    (insideBounds.y !== 0 &&
+                        boundsNormal.y === -1 * insideBounds.y) ||
+                    (insideBounds.y === 0 && boundsNormal.y !== 0) ||
+                    (insideBounds.z !== 0 &&
+                        boundsNormal.z === -1 * insideBounds.z) ||
+                    (insideBounds.z === 0 && boundsNormal.z !== 0)
+                ) {
+                    const voxelPos = intPos.clone().add(boundsNormal);
+                    if (this.data.hasVoxel(voxelPos)) return null;
                     return {
-                        position: intPos.sub(boundsNormal),
+                        position: intPos,
                         normal: boundsNormal,
                     };
                 }
@@ -194,24 +201,27 @@ export class SceneState {
 
     /** Returns a normal vector if this voxel position is next to the bounds. */
     private intersectsBounds(position: Vector3): Vector3 | null {
-        if (!this.isInBounds(position)) return null;
-        if (position.x === 0) return new Vector3(1, 0, 0);
-        if (position.x === this.sceneSize - 1) return new Vector3(-1, 0, 0);
-        if (position.y === 0) return new Vector3(0, 1, 0);
-        if (position.y === this.sceneSize - 1) return new Vector3(0, -1, 0);
-        if (position.z === 0) return new Vector3(0, 0, 1);
-        if (position.z === this.sceneSize - 1) return new Vector3(0, 0, -1);
-        return null;
+        if (!this.isInBounds(position, 1)) return null;
+        const normal = new Vector3(
+            position.x === -1 ? 1 : position.x === this.sceneSize ? -1 : 0,
+            position.y === -1 ? 1 : position.y === this.sceneSize ? -1 : 0,
+            position.z === -1 ? 1 : position.z === this.sceneSize ? -1 : 0,
+        );
+        if (normal.equals(new Vector3())) {
+            return null;
+        } else {
+            return normal;
+        }
     }
 
-    private isInBounds(position: Vector3): boolean {
+    private isInBounds(position: Vector3, padding = 0): boolean {
         return (
-            position.x >= 0 &&
-            position.x < this.sceneSize &&
-            position.y >= 0 &&
-            position.y < this.sceneSize &&
-            position.z >= 0 &&
-            position.z < this.sceneSize
+            position.x >= 0 - padding &&
+            position.x < this.sceneSize + padding &&
+            position.y >= 0 - padding &&
+            position.y < this.sceneSize + padding &&
+            position.z >= 0 - padding &&
+            position.z < this.sceneSize + padding
         );
     }
 
