@@ -17,18 +17,27 @@ type VoxelData = {
  *  https://threejs.org/manual/#en/voxel-geometry
  */
 export class SceneData {
+    public onChange?: () => void;
     private geometry?: BufferGeometry;
+    private undoManager: Y.UndoManager;
 
-    constructor(private map: Y.Map<VoxelData>) {}
+    constructor(private map: Y.Map<VoxelData>) {
+        this.undoManager = new Y.UndoManager(map, {
+            ignoreRemoteMapChanges: true,
+        });
+        map.observe(() => {
+            this.updateGeometry();
+            this.onChange?.();
+        });
+    }
 
     public setVoxel(position: Vector3, color: Color) {
         this.map.set(this.vecToKey(position), {
             color: { r: color.r, g: color.g, b: color.b },
         });
-        this.updateGeometry();
     }
 
-    public hasVoxel(position: Vector3) {
+    public hasVoxel(position: Vector3): boolean {
         return this.map.has(this.vecToKey(position));
     }
 
@@ -37,6 +46,19 @@ export class SceneData {
         this.geometry = new BufferGeometry();
         this.updateGeometry();
         return new Mesh(this.geometry, material);
+    }
+
+    public undo() {
+        this.undoManager.undo();
+    }
+
+    public redo() {
+        this.undoManager.redo();
+    }
+
+    /** All modifications done to the voxels in the passed in function will be executed in one transaction. */
+    public batch(f: () => void) {
+        this.map.doc?.transact?.(f);
     }
 
     /** This function generates geometry data for all voxels in the scene. */

@@ -55,6 +55,8 @@
 
     function handleKey(ev: KeyboardEvent) {
         if (ev.key === 'r') controls.reset();
+        else if (ev.ctrlKey && ev.key === 'z') sceneState.data.undo();
+        else if (ev.ctrlKey && ev.key === 'y') sceneState.data.redo();
     }
 
     function handlePointerMove(ev: PointerEvent) {

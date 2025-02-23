@@ -31,13 +31,33 @@ export class SceneState {
 
         const doc = new Y.Doc();
         this.data = new SceneData(doc.getMap('voxels'));
-
-        this.data.setVoxel(new Vector3(3, 0, 3), new Color(Color.NAMES.red));
-        this.data.setVoxel(new Vector3(2, 0, 3), new Color(Color.NAMES.blue));
-        this.data.setVoxel(new Vector3(4, 0, 3), new Color(Color.NAMES.green));
-        this.data.setVoxel(new Vector3(3, 0, 2), new Color(Color.NAMES.purple));
-        this.data.setVoxel(new Vector3(3, 0, 4), new Color(Color.NAMES.aqua));
-        this.data.setVoxel(new Vector3(3, 1, 3), new Color(Color.NAMES.lime));
+        this.data.onChange = () => this.onChange?.();
+        this.data.batch(() => {
+            this.data.setVoxel(
+                new Vector3(3, 0, 3),
+                new Color(Color.NAMES.red),
+            );
+            this.data.setVoxel(
+                new Vector3(2, 0, 3),
+                new Color(Color.NAMES.blue),
+            );
+            this.data.setVoxel(
+                new Vector3(4, 0, 3),
+                new Color(Color.NAMES.green),
+            );
+            this.data.setVoxel(
+                new Vector3(3, 0, 2),
+                new Color(Color.NAMES.purple),
+            );
+            this.data.setVoxel(
+                new Vector3(3, 0, 4),
+                new Color(Color.NAMES.aqua),
+            );
+            this.data.setVoxel(
+                new Vector3(3, 1, 3),
+                new Color(Color.NAMES.lime),
+            );
+        });
         this.voxelMesh = this.data.getVoxelMesh();
         this.scene.add(this.voxelMesh);
 
@@ -97,7 +117,6 @@ export class SceneState {
     public placeVoxel() {
         if (!this.selection) return;
         this.data.setVoxel(this.selection, new Color(Color.NAMES.white));
-        this.onChange?.();
         if (this.lastPointer) this.updateSelection(this.lastPointer);
     }
 
