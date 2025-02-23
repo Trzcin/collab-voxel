@@ -10,10 +10,11 @@ import {
 } from 'three';
 import { BoundingBox } from './BoundingBox';
 import { SceneData } from './SceneData';
+import * as Y from 'yjs';
 
 export class SceneState {
     public scene = new Scene();
-    public data = new SceneData();
+    public data: SceneData;
     public selection: Vector3 | null = null;
     public onChange?: () => void;
     private boundingBox: BoundingBox;
@@ -27,6 +28,9 @@ export class SceneState {
     ) {
         this.boundingBox = new BoundingBox(this.sceneSize);
         this.scene.add(this.boundingBox.object);
+
+        const doc = new Y.Doc();
+        this.data = new SceneData(doc.getMap('voxels'));
 
         this.data.setVoxel(new Vector3(3, 0, 3), new Color(Color.NAMES.red));
         this.data.setVoxel(new Vector3(2, 0, 3), new Color(Color.NAMES.blue));

@@ -6,6 +6,7 @@ import {
     MeshBasicMaterial,
     Vector3,
 } from 'three';
+import * as Y from 'yjs';
 
 type VoxelData = {
     /** RGB voxel color, values range from 0.0 to 1.0 */
@@ -16,11 +17,9 @@ type VoxelData = {
  *  https://threejs.org/manual/#en/voxel-geometry
  */
 export class SceneData {
-    /** A string is used for the key since using Y.Map in the future requires keys to be strings. */
-    private map = new Map<string, VoxelData>();
     private geometry?: BufferGeometry;
 
-    constructor() {}
+    constructor(private map: Y.Map<VoxelData>) {}
 
     public setVoxel(position: Vector3, color: Color) {
         this.map.set(this.vecToKey(position), {
@@ -28,7 +27,7 @@ export class SceneData {
         });
         this.updateGeometry();
     }
-    
+
     public hasVoxel(position: Vector3) {
         return this.map.has(this.vecToKey(position));
     }
@@ -79,7 +78,7 @@ export class SceneData {
             colors,
         };
     }
-    
+
     /** Call this when the voxel mesh geomtry buffer should be updated. */
     private updateGeometry() {
         if (!this.geometry) return;
