@@ -11,6 +11,7 @@ import {
 import { BoundingBox } from './BoundingBox';
 import { SceneData } from './SceneData';
 import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
 
 export class SceneState {
     public scene = new Scene();
@@ -21,6 +22,7 @@ export class SceneState {
     private voxelMesh: Mesh;
     private selectionMesh: Mesh;
     private lastPointer?: Vector2;
+    private provider: WebsocketProvider;
 
     constructor(
         public camera: Camera,
@@ -30,34 +32,14 @@ export class SceneState {
         this.scene.add(this.boundingBox.object);
 
         const doc = new Y.Doc();
+        this.provider = new WebsocketProvider(
+            'ws://localhost:1234',
+            'demo',
+            doc,
+        );
+
         this.data = new SceneData(doc.getMap('voxels'));
         this.data.onChange = () => this.onChange?.();
-        this.data.batch(() => {
-            this.data.setVoxel(
-                new Vector3(3, 0, 3),
-                new Color(Color.NAMES.red),
-            );
-            this.data.setVoxel(
-                new Vector3(2, 0, 3),
-                new Color(Color.NAMES.blue),
-            );
-            this.data.setVoxel(
-                new Vector3(4, 0, 3),
-                new Color(Color.NAMES.green),
-            );
-            this.data.setVoxel(
-                new Vector3(3, 0, 2),
-                new Color(Color.NAMES.purple),
-            );
-            this.data.setVoxel(
-                new Vector3(3, 0, 4),
-                new Color(Color.NAMES.aqua),
-            );
-            this.data.setVoxel(
-                new Vector3(3, 1, 3),
-                new Color(Color.NAMES.lime),
-            );
-        });
         this.voxelMesh = this.data.getVoxelMesh();
         this.scene.add(this.voxelMesh);
 
