@@ -61,6 +61,11 @@ export class SceneData {
         this.map.doc?.transact?.(f);
     }
 
+    /** Remove all voxels from the scene */
+    public clear() {
+        this.map.clear();
+    }
+
     /** This function generates geometry data for all voxels in the scene. */
     private generateGeometry(): {
         positions: number[];

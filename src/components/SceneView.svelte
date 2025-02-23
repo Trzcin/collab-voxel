@@ -57,6 +57,7 @@
         if (ev.key === 'r') controls.reset();
         else if (ev.ctrlKey && ev.key === 'z') sceneState.data.undo();
         else if (ev.ctrlKey && ev.key === 'y') sceneState.data.redo();
+        else if (ev.key === 'c') sceneState.data.clear();
     }
 
     function handlePointerMove(ev: PointerEvent) {
