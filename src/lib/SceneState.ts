@@ -17,12 +17,13 @@ export class SceneState {
     public scene = new Scene();
     public data: SceneData;
     public selection: Vector3 | null = null;
+    public username = crypto.randomUUID().split('-')[0];
     public onChange?: () => void;
     private boundingBox: BoundingBox;
     private voxelMesh: Mesh;
-    private selectionMesh: Mesh;
     private lastPointer?: Vector2;
     private provider: WebsocketProvider;
+    private users = new Map<number, UserData>();
 
     constructor(
         public camera: Camera,
@@ -37,21 +38,16 @@ export class SceneState {
             'demo',
             doc,
         );
+        this.provider.awareness.on(
+            'change',
+            this.handleAwarenessUpdate.bind(this),
+        );
+        this.provider.awareness.setLocalStateField('username', this.username);
 
         this.data = new SceneData(doc.getMap('voxels'));
         this.data.onChange = () => this.onChange?.();
         this.voxelMesh = this.data.getVoxelMesh();
         this.scene.add(this.voxelMesh);
-
-        const selectionGeometry = new BoxGeometry(1, 1, 1);
-        const selectionMaterial = new MeshBasicMaterial({
-            color: new Color(Color.NAMES.red),
-            opacity: 0.5,
-            transparent: true,
-        });
-        this.selectionMesh = new Mesh(selectionGeometry, selectionMaterial);
-        this.selectionMesh.visible = false;
-        this.scene.add(this.selectionMesh);
     }
 
     /** Call this function when the scene is about to be rerendered due to camera movement.
@@ -90,9 +86,11 @@ export class SceneState {
         if (this.selection && voxelPos.equals(this.selection)) return;
 
         this.selection = voxelPos;
-        this.selectionMesh.position.copy(voxelPos.clone().add(offset));
-        this.selectionMesh.visible = true;
-        this.onChange?.();
+        const selectionMeshPos = voxelPos.clone().add(offset);
+        this.provider.awareness.setLocalStateField(
+            'selection',
+            selectionMeshPos.toArray(),
+        );
     }
 
     /** Places a voxel at the current selection */
@@ -233,7 +231,78 @@ export class SceneState {
     private clearSelection() {
         if (!this.selection) return;
         this.selection = null;
-        this.selectionMesh.visible = false;
+        this.provider.awareness.setLocalStateField('selection', null);
+    }
+
+    private handleAwarenessUpdate({
+        added,
+        updated,
+        removed,
+    }: {
+        added: number[];
+        updated: number[];
+        removed: number[];
+    }) {
+        const modified = [...added, ...updated];
+        const states = this.provider.awareness.getStates();
+        for (const id of modified) {
+            const state = states.get(id);
+            if (!state || !state.username) continue;
+            let userData = this.users.get(id);
+            if (!userData) {
+                // Add selection mesh for this user
+                const mesh = this.getSelectionMesh(state.username);
+                if (state.selection) {
+                    mesh.position.fromArray(state.selection);
+                    mesh.visible = true;
+                }
+                this.scene.add(mesh);
+                userData = { selectionMesh: mesh };
+            } else {
+                // Update selection mesh for this user
+                if (state.selection) {
+                    userData.selectionMesh.position.fromArray(state.selection);
+                    userData.selectionMesh.visible = true;
+                } else {
+                    userData.selectionMesh.visible = false;
+                }
+            }
+            this.users.set(id, userData);
+        }
+
+        for (const id of removed) {
+            const data = this.users.get(id);
+            if (!data) continue;
+            this.scene.remove(data.selectionMesh);
+            this.users.delete(id);
+        }
         this.onChange?.();
     }
+
+    private getSelectionMesh(username: string): Mesh {
+        const selectionGeometry = new BoxGeometry(1, 1, 1);
+        const selectionMaterial = new MeshBasicMaterial({
+            color: stringToColor(username),
+            opacity: 0.5,
+            transparent: true,
+        });
+        const mesh = new Mesh(selectionGeometry, selectionMaterial);
+        mesh.visible = false;
+        return mesh;
+    }
+}
+
+type UserData = { selectionMesh: Mesh };
+
+function stringToColor(str: string): Color {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const h = hash % 360;
+    const s = 70;
+    const l = 70;
+    const colorHSL = `hsl(${h}, ${s}%, ${l}%)`;
+    return new Color(colorHSL);
 }
