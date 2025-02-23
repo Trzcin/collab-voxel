@@ -24,6 +24,7 @@ export class SceneState {
     private lastPointer?: Vector2;
     private provider: WebsocketProvider;
     private users = new Map<number, UserData>();
+    private _wireframe = false;
 
     constructor(
         public camera: Camera,
@@ -98,6 +99,16 @@ export class SceneState {
         if (!this.selection) return;
         this.data.setVoxel(this.selection, new Color(Color.NAMES.white));
         if (this.lastPointer) this.updateSelection(this.lastPointer);
+    }
+
+    get wireframe() {
+        return this._wireframe;
+    }
+
+    set wireframe(value: boolean) {
+        (<MeshBasicMaterial>this.voxelMesh.material).wireframe = value;
+        this._wireframe = value;
+        this.onChange?.();
     }
 
     private intersectRay(

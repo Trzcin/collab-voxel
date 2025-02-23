@@ -124,6 +124,7 @@ export class SceneData {
             'color',
             new BufferAttribute(new Float32Array(colors), 3),
         );
+        // TODO: Calling setIndex like this is not endorsed and leads to bugs with wireframe not updating
         this.geometry.setIndex(indicies);
     }
 

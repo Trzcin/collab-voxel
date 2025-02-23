@@ -58,6 +58,7 @@
         else if (ev.ctrlKey && ev.key === 'z') sceneState.data.undo();
         else if (ev.ctrlKey && ev.key === 'y') sceneState.data.redo();
         else if (ev.key === 'c') sceneState.data.clear();
+        else if (ev.key === 'w') sceneState.wireframe = !sceneState.wireframe;
     }
 
     function handlePointerMove(ev: PointerEvent) {
