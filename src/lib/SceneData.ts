@@ -37,6 +37,10 @@ export class SceneData {
         });
     }
 
+    public deleteVoxel(position: Vector3) {
+        this.map.delete(this.vecToKey(position));
+    }
+
     public hasVoxel(position: Vector3): boolean {
         return this.map.has(this.vecToKey(position));
     }

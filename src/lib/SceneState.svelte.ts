@@ -25,6 +25,7 @@ export class SceneState {
     private provider: WebsocketProvider;
     private users = new Map<number, UserData>();
     private _wireframe = false;
+    private _mode: Mode = 'delete';
     private connected = $state(false);
     private synced = $state(false);
     public ready = $derived(this.connected && this.synced);
@@ -87,7 +88,10 @@ export class SceneState {
 
         const { position, normal } = intersection;
         const offset = new Vector3(0.5, 0.5, 0.5);
-        const voxelPos = position.clone().add(normal);
+        const voxelPos = position.clone();
+        if (this._mode === 'attach') {
+            voxelPos.add(normal);
+        }
 
         if (!this.isInBounds(voxelPos)) {
             this.clearSelection();
@@ -110,10 +114,20 @@ export class SceneState {
         this.provider.awareness.setLocalStateField('selection', null);
     }
 
-    /** Places a voxel at the current selection */
-    public placeVoxel() {
+    /** Performs an action on the current selection depending on the mode:
+     * - `attach` - places a voxel at the selection
+     * - `delete` - deletes the selected voxel
+     * - `replace` - replaces the selected voxel
+     */
+    public actOnSelection() {
         if (!this.selection) return;
-        this.data.setVoxel(this.selection, new Color(Color.NAMES.white));
+
+        if (this._mode === 'attach' || this._mode === 'replace') {
+            this.data.setVoxel(this.selection, new Color(Color.NAMES.white));
+        } else if (this._mode === 'delete') {
+            this.data.deleteVoxel(this.selection);
+        }
+
         if (this.lastPointer) this.updateSelection(this.lastPointer);
     }
 
@@ -125,6 +139,15 @@ export class SceneState {
         (<MeshBasicMaterial>this.voxelMesh.material).wireframe = value;
         this._wireframe = value;
         this.onChange?.();
+    }
+
+    get mode() {
+        return this._mode;
+    }
+
+    set mode(value: Mode) {
+        this._mode = value;
+        if (this.lastPointer) this.updateSelection(this.lastPointer);
     }
 
     private intersectRay(
@@ -174,27 +197,29 @@ export class SceneState {
                 };
             }
 
-            const boundsNormal = this.intersectsBounds(intPos);
-            if (boundsNormal) {
-                if (!insideBounds) {
-                    insideBounds = boundsNormal;
-                } else if (
-                    (insideBounds.x !== 0 &&
-                        boundsNormal.x === -1 * insideBounds.x) ||
-                    (insideBounds.x === 0 && boundsNormal.x !== 0) ||
-                    (insideBounds.y !== 0 &&
-                        boundsNormal.y === -1 * insideBounds.y) ||
-                    (insideBounds.y === 0 && boundsNormal.y !== 0) ||
-                    (insideBounds.z !== 0 &&
-                        boundsNormal.z === -1 * insideBounds.z) ||
-                    (insideBounds.z === 0 && boundsNormal.z !== 0)
-                ) {
-                    const voxelPos = intPos.clone().add(boundsNormal);
-                    if (this.data.hasVoxel(voxelPos)) return null;
-                    return {
-                        position: intPos,
-                        normal: boundsNormal,
-                    };
+            if (this._mode === 'attach') {
+                const boundsNormal = this.intersectsBounds(intPos);
+                if (boundsNormal) {
+                    if (!insideBounds) {
+                        insideBounds = boundsNormal;
+                    } else if (
+                        (insideBounds.x !== 0 &&
+                            boundsNormal.x === -1 * insideBounds.x) ||
+                        (insideBounds.x === 0 && boundsNormal.x !== 0) ||
+                        (insideBounds.y !== 0 &&
+                            boundsNormal.y === -1 * insideBounds.y) ||
+                        (insideBounds.y === 0 && boundsNormal.y !== 0) ||
+                        (insideBounds.z !== 0 &&
+                            boundsNormal.z === -1 * insideBounds.z) ||
+                        (insideBounds.z === 0 && boundsNormal.z !== 0)
+                    ) {
+                        const voxelPos = intPos.clone().add(boundsNormal);
+                        if (this.data.hasVoxel(voxelPos)) return null;
+                        return {
+                            position: intPos,
+                            normal: boundsNormal,
+                        };
+                    }
                 }
             }
 
@@ -272,6 +297,7 @@ export class SceneState {
             let userData = this.users.get(id);
             if (!userData) {
                 // Add selection mesh for this user
+                console.log(state.username);
                 const mesh = this.getSelectionMesh(state.username);
                 if (state.selection) {
                     mesh.position.fromArray(state.selection);
@@ -306,6 +332,7 @@ export class SceneState {
             color: stringToColor(username),
             opacity: 0.5,
             transparent: true,
+            depthTest: false,
         });
         const mesh = new Mesh(selectionGeometry, selectionMaterial);
         mesh.visible = false;
@@ -314,6 +341,7 @@ export class SceneState {
 }
 
 type UserData = { selectionMesh: Mesh };
+type Mode = 'attach' | 'delete' | 'replace';
 
 function stringToColor(str: string): Color {
     let hash = 0;
@@ -321,9 +349,10 @@ function stringToColor(str: string): Color {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
 
-    const h = hash % 360;
-    const s = 70;
-    const l = 70;
+    const h = Math.max(hash % 360, 0);
+    console.log(str, h);
+    const s = 100;
+    const l = 50;
     const colorHSL = `hsl(${h}, ${s}%, ${l}%)`;
     return new Color(colorHSL);
 }

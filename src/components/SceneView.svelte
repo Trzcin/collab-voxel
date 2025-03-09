@@ -58,11 +58,14 @@
     function handleKey(ev: KeyboardEvent) {
         if (!sceneState.ready) return;
 
-        if (ev.key === 'r') controls.reset();
+        if (ev.key === 'R') controls.reset();
         else if (ev.ctrlKey && ev.key === 'z') sceneState.data.undo();
         else if (ev.ctrlKey && ev.key === 'y') sceneState.data.redo();
         else if (ev.key === 'c') sceneState.data.clear();
         else if (ev.key === 'w') sceneState.wireframe = !sceneState.wireframe;
+        else if (ev.key === 'a') sceneState.mode = 'attach';
+        else if (ev.key === 'd') sceneState.mode = 'delete';
+        else if (ev.key === 'r') sceneState.mode = 'replace';
     }
 
     function handlePointerMove(ev: PointerEvent) {
@@ -86,7 +89,7 @@
         bind:clientHeight={rootSize.height}
         onpointermove={handlePointerMove}
         onpointerleave={() => sceneState.clearSelection()}
-        onclick={() => sceneState.placeVoxel()}
+        onclick={() => sceneState.actOnSelection()}
     ></div>
 {:else}
     <h2>Connecting to server</h2>
