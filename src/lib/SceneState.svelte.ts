@@ -17,6 +17,7 @@ export class SceneState {
     public scene = new Scene();
     public data: SceneData;
     public selection: Vector3 | null = null;
+    public camera?: Camera;
     public username = crypto.randomUUID().split('-')[0];
     public onChange?: () => void;
     public mode = $state<Mode>('attach');
@@ -30,51 +31,58 @@ export class SceneState {
     private synced = $state(false);
     public ready = $derived(this.connected && this.synced);
 
-    constructor(
-        public camera: Camera,
-        private sceneSize: number,
-    ) {
-        this.boundingBox = new BoundingBox(this.sceneSize);
-        this.scene.add(this.boundingBox.object);
-
+    constructor(private sceneSize: number) {
+        const local = import.meta.env.VITE_LOCAL !== 'false';
         const doc = new Y.Doc();
         this.provider = new WebsocketProvider(
-            'ws://localhost:1234',
-            'demo',
+            import.meta.env.VITE_WS_URL ?? 'ws://localhost:1234',
+            'voxel',
             doc,
+            {
+                connect: !local,
+            },
         );
-        this.provider.on('sync', (sync) => (this.synced = sync));
-        this.provider.on(
-            'status',
-            ({ status }) => (this.connected = status == 'connected'),
-        );
+        if (local) {
+            this.provider.connectBc();
+            this.synced = true;
+            this.connected = true;
+        } else {
+            this.provider.on('sync', (sync) => (this.synced = sync));
+            this.provider.on(
+                'status',
+                ({ status }) => (this.connected = status == 'connected'),
+            );
+        }
         this.provider.awareness.on(
             'change',
             this.handleAwarenessUpdate.bind(this),
         );
         this.provider.awareness.setLocalStateField('username', this.username);
 
-        this.data = new SceneData(doc.getMap('voxels'));
-        this.data.onChange = () => this.onChange?.();
-        this.voxelMesh = this.data.getVoxelMesh();
-        this.scene.add(this.voxelMesh);
-
         $effect(() => {
             this.mode;
             if (this.lastPointer) this.updateSelection(this.lastPointer);
         });
-
         $effect(() => {
             (<MeshBasicMaterial>this.voxelMesh.material).wireframe =
                 this.wireframe;
             this.onChange?.();
         });
+
+        // Setup scene
+        this.boundingBox = new BoundingBox(this.sceneSize);
+        this.scene.add(this.boundingBox.object);
+        this.data = new SceneData(doc.getMap('voxels'));
+        this.data.onChange = () => this.onChange?.();
+        this.voxelMesh = this.data.getVoxelMesh();
+        this.scene.add(this.voxelMesh);
     }
 
     /** Call this function when the scene is about to be rerendered due to camera movement.
      *  It will update elements dependent on the camera position.
      */
     public cameraUpdate() {
+        if (!this.camera) return;
         this.boundingBox.update(this.camera.position);
     }
 
@@ -83,6 +91,7 @@ export class SceneState {
      */
     public updateSelection(pointer: Vector2) {
         this.lastPointer = pointer;
+        if (!this.camera) return;
         const rayStart = new Vector3().setFromMatrixPosition(
             this.camera.matrixWorld,
         );

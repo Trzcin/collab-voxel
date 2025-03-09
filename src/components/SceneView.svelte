@@ -2,8 +2,6 @@
     import { MOUSE, PerspectiveCamera, Vector2, WebGLRenderer } from 'three';
     import { OrbitControls } from 'three/examples/jsm/Addons.js';
     import { SceneState } from '../lib/SceneState.svelte';
-    import { fade } from 'svelte/transition';
-    import { saveSceneState } from 'three/src/renderers/common/RendererUtils.js';
 
     let root: HTMLDivElement | undefined = $state();
     let rootSize = $state({ width: 0, height: 0 });
@@ -21,7 +19,8 @@
     controls.target.set(SCENE_SIZE / 2, 0, SCENE_SIZE / 2);
     controls.update();
     controls.saveState();
-    const sceneState = new SceneState(camera, SCENE_SIZE);
+    const sceneState = new SceneState(SCENE_SIZE);
+    sceneState.camera = camera;
 
     $effect(() => {
         if (!root || !sceneState.ready) return;
