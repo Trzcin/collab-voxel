@@ -7,11 +7,16 @@
     import RedoIcon from '../icons/redo.svg';
     import ClearIcon from '../icons/clear.svg';
     import WireframeIcon from '../icons/wireframe.svg';
+    import ResetViewIcon from '../icons/resetView.svg';
 
-    let { sceneState }: { sceneState: SceneState } = $props();
+    let {
+        sceneState,
+        onviewreset,
+    }: { sceneState: SceneState; onviewreset?: () => void } = $props();
 
     function handleKey(ev: KeyboardEvent) {
-        if (ev.ctrlKey && ev.key === 'z') sceneState.data.undo();
+        if (ev.key === 'R') onviewreset?.();
+        else if (ev.ctrlKey && ev.key === 'z') sceneState.data.undo();
         else if (ev.ctrlKey && ev.key === 'y') sceneState.data.redo();
         else if (ev.key === 'c') sceneState.data.clear();
         else if (ev.key === 'w') sceneState.wireframe = !sceneState.wireframe;
@@ -66,6 +71,9 @@
         >
         <button title="Clear scene (c)" onclick={() => sceneState.data.clear()}
             ><img src={ClearIcon} alt="clear" /></button
+        >
+        <button title="Reset view (R)" onclick={() => onviewreset?.()}
+            ><img src={ResetViewIcon} alt="reset" /></button
         >
     </section>
     <span class="separator"></span>

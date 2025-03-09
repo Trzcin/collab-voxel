@@ -3,14 +3,17 @@
     import { OrbitControls } from 'three/examples/jsm/Addons.js';
     import type { SceneState } from '../lib/SceneState.svelte';
 
-    let { sceneState }: { sceneState: SceneState } = $props();
+    let {
+        sceneState,
+        controls = $bindable(),
+    }: { sceneState: SceneState; controls?: OrbitControls } = $props();
 
     let root: HTMLDivElement | undefined = $state();
     let rootSize = $state({ width: 0, height: 0 });
 
     const renderer = new WebGLRenderer();
     const camera = new PerspectiveCamera(45, 1, 1, 10000);
-    const controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
     controls.mouseButtons = {
         LEFT: null,
         RIGHT: MOUSE.ROTATE,
@@ -54,10 +57,6 @@
     });
     sceneState.onChange = requestRender;
 
-    function handleKey(ev: KeyboardEvent) {
-        if (ev.key === 'R') controls.reset();
-    }
-
     function handlePointerMove(ev: PointerEvent) {
         sceneState.updateSelection(
             new Vector2(
@@ -67,8 +66,6 @@
         );
     }
 </script>
-
-<svelte:window onkeydown={handleKey} />
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
