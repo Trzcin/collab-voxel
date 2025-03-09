@@ -25,6 +25,9 @@ export class SceneState {
     private provider: WebsocketProvider;
     private users = new Map<number, UserData>();
     private _wireframe = false;
+    private connected = $state(false);
+    private synced = $state(false);
+    public ready = $derived(this.connected && this.synced);
 
     constructor(
         public camera: Camera,
@@ -34,11 +37,18 @@ export class SceneState {
         this.scene.add(this.boundingBox.object);
 
         const doc = new Y.Doc();
+
         this.provider = new WebsocketProvider(
             'ws://localhost:1234',
             'demo',
             doc,
         );
+        this.provider.on('sync', (sync) => (this.synced = sync));
+        this.provider.on(
+            'status',
+            ({ status }) => (this.connected = status == 'connected'),
+        );
+
         this.provider.awareness.on(
             'change',
             this.handleAwarenessUpdate.bind(this),

@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
     import { MOUSE, PerspectiveCamera, Vector2, WebGLRenderer } from 'three';
     import { OrbitControls } from 'three/examples/jsm/Addons.js';
-    import { SceneState } from '../lib/SceneState';
+    import { SceneState } from '../lib/SceneState.svelte';
+    import { fade } from 'svelte/transition';
 
-    let root: HTMLDivElement;
+    let root: HTMLDivElement | undefined = $state();
     let rootSize = $state({ width: 0, height: 0 });
 
     const SCENE_SIZE = 7;
@@ -22,7 +22,8 @@
     controls.saveState();
     const sceneState = new SceneState(camera, SCENE_SIZE);
 
-    onMount(() => {
+    $effect(() => {
+        if (!root || !sceneState.ready) return;
         root.appendChild(renderer.domElement);
     });
 
@@ -54,6 +55,8 @@
     sceneState.onChange = requestRender;
 
     function handleKey(ev: KeyboardEvent) {
+        if (!sceneState.ready) return;
+
         if (ev.key === 'r') controls.reset();
         else if (ev.ctrlKey && ev.key === 'z') sceneState.data.undo();
         else if (ev.ctrlKey && ev.key === 'y') sceneState.data.redo();
@@ -73,15 +76,19 @@
 
 <svelte:window onkeydown={handleKey} />
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<div
-    bind:this={root}
-    bind:clientWidth={rootSize.width}
-    bind:clientHeight={rootSize.height}
-    onpointermove={handlePointerMove}
-    onclick={() => sceneState.placeVoxel()}
-></div>
+{#if sceneState.ready}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div
+        bind:this={root}
+        bind:clientWidth={rootSize.width}
+        bind:clientHeight={rootSize.height}
+        onpointermove={handlePointerMove}
+        onclick={() => sceneState.placeVoxel()}
+    ></div>
+{:else}
+    <h2>Connecting to server</h2>
+{/if}
 
 <style>
     div {
