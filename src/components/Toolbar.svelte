@@ -99,10 +99,10 @@
         transform: translateX(-50%);
         background: #222;
         border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
+        padding: 1rem;
         display: flex;
         align-items: center;
-        height: 3.5rem;
+        height: 4.5rem;
     }
 
     section {
