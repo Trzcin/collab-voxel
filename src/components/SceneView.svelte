@@ -3,6 +3,7 @@
     import { OrbitControls } from 'three/examples/jsm/Addons.js';
     import { SceneState } from '../lib/SceneState.svelte';
     import { fade } from 'svelte/transition';
+    import { saveSceneState } from 'three/src/renderers/common/RendererUtils.js';
 
     let root: HTMLDivElement | undefined = $state();
     let rootSize = $state({ width: 0, height: 0 });
@@ -84,6 +85,7 @@
         bind:clientWidth={rootSize.width}
         bind:clientHeight={rootSize.height}
         onpointermove={handlePointerMove}
+        onpointerleave={() => sceneState.clearSelection()}
         onclick={() => sceneState.placeVoxel()}
     ></div>
 {:else}

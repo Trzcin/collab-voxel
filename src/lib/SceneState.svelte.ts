@@ -104,6 +104,12 @@ export class SceneState {
         );
     }
 
+    public clearSelection() {
+        if (!this.selection) return;
+        this.selection = null;
+        this.provider.awareness.setLocalStateField('selection', null);
+    }
+
     /** Places a voxel at the current selection */
     public placeVoxel() {
         if (!this.selection) return;
@@ -247,12 +253,6 @@ export class SceneState {
             position.z >= 0 - padding &&
             position.z < this.sceneSize + padding
         );
-    }
-
-    private clearSelection() {
-        if (!this.selection) return;
-        this.selection = null;
-        this.provider.awareness.setLocalStateField('selection', null);
     }
 
     private handleAwarenessUpdate({
