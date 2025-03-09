@@ -31,7 +31,7 @@ export class SceneState {
     private synced = $state(false);
     public ready = $derived(this.connected && this.synced);
 
-    constructor(private sceneSize: number) {
+    constructor(public sceneSize: number) {
         const local = import.meta.env.VITE_LOCAL !== 'false';
         const doc = new Y.Doc();
         this.provider = new WebsocketProvider(
