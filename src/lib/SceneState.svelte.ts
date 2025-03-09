@@ -19,13 +19,13 @@ export class SceneState {
     public selection: Vector3 | null = null;
     public username = crypto.randomUUID().split('-')[0];
     public onChange?: () => void;
+    public mode = $state<Mode>('attach');
+    public wireframe = $state(false);
     private boundingBox: BoundingBox;
     private voxelMesh: Mesh;
     private lastPointer?: Vector2;
     private provider: WebsocketProvider;
     private users = new Map<number, UserData>();
-    private _wireframe = false;
-    private _mode: Mode = 'delete';
     private connected = $state(false);
     private synced = $state(false);
     public ready = $derived(this.connected && this.synced);
@@ -38,7 +38,6 @@ export class SceneState {
         this.scene.add(this.boundingBox.object);
 
         const doc = new Y.Doc();
-
         this.provider = new WebsocketProvider(
             'ws://localhost:1234',
             'demo',
@@ -49,7 +48,6 @@ export class SceneState {
             'status',
             ({ status }) => (this.connected = status == 'connected'),
         );
-
         this.provider.awareness.on(
             'change',
             this.handleAwarenessUpdate.bind(this),
@@ -60,6 +58,17 @@ export class SceneState {
         this.data.onChange = () => this.onChange?.();
         this.voxelMesh = this.data.getVoxelMesh();
         this.scene.add(this.voxelMesh);
+
+        $effect(() => {
+            this.mode;
+            if (this.lastPointer) this.updateSelection(this.lastPointer);
+        });
+
+        $effect(() => {
+            (<MeshBasicMaterial>this.voxelMesh.material).wireframe =
+                this.wireframe;
+            this.onChange?.();
+        });
     }
 
     /** Call this function when the scene is about to be rerendered due to camera movement.
@@ -89,7 +98,7 @@ export class SceneState {
         const { position, normal } = intersection;
         const offset = new Vector3(0.5, 0.5, 0.5);
         const voxelPos = position.clone();
-        if (this._mode === 'attach') {
+        if (this.mode === 'attach') {
             voxelPos.add(normal);
         }
 
@@ -122,31 +131,12 @@ export class SceneState {
     public actOnSelection() {
         if (!this.selection) return;
 
-        if (this._mode === 'attach' || this._mode === 'replace') {
+        if (this.mode === 'attach' || this.mode === 'replace') {
             this.data.setVoxel(this.selection, new Color(Color.NAMES.white));
-        } else if (this._mode === 'delete') {
+        } else if (this.mode === 'delete') {
             this.data.deleteVoxel(this.selection);
         }
 
-        if (this.lastPointer) this.updateSelection(this.lastPointer);
-    }
-
-    get wireframe() {
-        return this._wireframe;
-    }
-
-    set wireframe(value: boolean) {
-        (<MeshBasicMaterial>this.voxelMesh.material).wireframe = value;
-        this._wireframe = value;
-        this.onChange?.();
-    }
-
-    get mode() {
-        return this._mode;
-    }
-
-    set mode(value: Mode) {
-        this._mode = value;
         if (this.lastPointer) this.updateSelection(this.lastPointer);
     }
 
@@ -197,7 +187,7 @@ export class SceneState {
                 };
             }
 
-            if (this._mode === 'attach') {
+            if (this.mode === 'attach') {
                 const boundsNormal = this.intersectsBounds(intPos);
                 if (boundsNormal) {
                     if (!insideBounds) {
