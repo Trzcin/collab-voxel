@@ -22,7 +22,8 @@ export class SceneState {
     public onChange?: () => void;
     public mode = $state<Mode>('attach');
     public wireframe = $state(false);
-    private boundingBox: BoundingBox;
+    public showGrid = $state(true);
+    private boundingBox?: BoundingBox;
     private voxelMesh: Mesh;
     private lastPointer?: Vector2;
     private provider: WebsocketProvider;
@@ -59,6 +60,12 @@ export class SceneState {
         );
         this.provider.awareness.setLocalStateField('username', this.username);
 
+        // Setup scene
+        this.data = new SceneData(doc.getMap('voxels'));
+        this.data.onChange = () => this.onChange?.();
+        this.voxelMesh = this.data.getVoxelMesh();
+        this.scene.add(this.voxelMesh);
+
         $effect(() => {
             this.mode;
             if (this.lastPointer) this.updateSelection(this.lastPointer);
@@ -68,21 +75,24 @@ export class SceneState {
                 this.wireframe;
             this.onChange?.();
         });
+        $effect(() => {
+            const box = new BoundingBox(this.sceneSize, this.showGrid);
+            this.boundingBox = box;
+            this.scene.add(box.object);
+            if (this.camera) this.boundingBox.update(this.camera.position);
+            this.onChange?.();
 
-        // Setup scene
-        this.boundingBox = new BoundingBox(this.sceneSize);
-        this.scene.add(this.boundingBox.object);
-        this.data = new SceneData(doc.getMap('voxels'));
-        this.data.onChange = () => this.onChange?.();
-        this.voxelMesh = this.data.getVoxelMesh();
-        this.scene.add(this.voxelMesh);
+            return () => {
+                this.scene.remove(box.object);
+            };
+        });
     }
 
     /** Call this function when the scene is about to be rerendered due to camera movement.
      *  It will update elements dependent on the camera position.
      */
     public cameraUpdate() {
-        if (!this.camera) return;
+        if (!this.camera || !this.boundingBox) return;
         this.boundingBox.update(this.camera.position);
     }
 

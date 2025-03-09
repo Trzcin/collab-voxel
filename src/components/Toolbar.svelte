@@ -8,6 +8,7 @@
     import ClearIcon from '../icons/clear.svg';
     import WireframeIcon from '../icons/wireframe.svg';
     import ResetViewIcon from '../icons/resetView.svg';
+    import GridIcon from '../icons/grid.svg';
 
     let {
         sceneState,
@@ -23,6 +24,7 @@
         else if (ev.key === 'a') sceneState.mode = 'attach';
         else if (ev.key === 'd') sceneState.mode = 'delete';
         else if (ev.key === 'r') sceneState.mode = 'replace';
+        else if (ev.key === 'g') sceneState.showGrid = !sceneState.showGrid;
     }
 </script>
 
@@ -81,6 +83,10 @@
         <label title="Toggle wireframe (w)">
             <input type="checkbox" bind:checked={sceneState.wireframe} />
             <img src={WireframeIcon} alt="wireframe" />
+        </label>
+        <label title="Toggle grid (g)">
+            <input type="checkbox" bind:checked={sceneState.showGrid} />
+            <img src={GridIcon} alt="grid" />
         </label>
     </section>
 </div>
