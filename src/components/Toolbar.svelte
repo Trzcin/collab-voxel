@@ -9,11 +9,13 @@
     import WireframeIcon from '../icons/wireframe.svg';
     import ResetViewIcon from '../icons/resetView.svg';
     import GridIcon from '../icons/grid.svg';
+    import PaletteIcon from '../icons/palette.svg';
 
     let {
         sceneState,
         onviewreset,
-    }: { sceneState: SceneState; onviewreset?: () => void } = $props();
+        paletteOpen = $bindable()
+    }: { sceneState: SceneState; onviewreset?: () => void; paletteOpen: boolean } = $props();
 
     function handleKey(ev: KeyboardEvent) {
         if (ev.key === 'R') onviewreset?.();
@@ -25,6 +27,7 @@
         else if (ev.key === 'd') sceneState.mode = 'delete';
         else if (ev.key === 'r') sceneState.mode = 'replace';
         else if (ev.key === 'g') sceneState.showGrid = !sceneState.showGrid;
+        else if (ev.key === 'p') paletteOpen = !paletteOpen;
     }
 </script>
 
@@ -87,6 +90,10 @@
         <label title="Toggle grid (g)">
             <input type="checkbox" bind:checked={sceneState.showGrid} />
             <img src={GridIcon} alt="grid" />
+        </label>
+        <label title="Toggle palette (p)">
+            <input type="checkbox" bind:checked={paletteOpen} />
+            <img src={PaletteIcon} alt="palette" />
         </label>
     </section>
 </div>
