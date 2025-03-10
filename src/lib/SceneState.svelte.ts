@@ -31,14 +31,15 @@ export class SceneState {
     private connected = $state(false);
     private synced = $state(false);
     public ready = $derived(this.connected && this.synced);
+    private ydoc: Y.Doc;
 
     constructor(public sceneSize: number) {
         const local = import.meta.env.VITE_LOCAL !== 'false';
-        const doc = new Y.Doc();
+        this.ydoc = new Y.Doc();
         this.provider = new WebsocketProvider(
             import.meta.env.VITE_WS_URL ?? 'ws://localhost:1234',
             'voxel',
-            doc,
+            this.ydoc,
             {
                 connect: !local,
             },
@@ -61,7 +62,7 @@ export class SceneState {
         this.provider.awareness.setLocalStateField('username', this.username);
 
         // Setup scene
-        this.data = new SceneData(doc.getMap('voxels'));
+        this.data = new SceneData(this.ydoc.getMap('voxels'));
         this.data.onChange = () => this.onChange?.();
         this.voxelMesh = this.data.getVoxelMesh();
         this.scene.add(this.voxelMesh);
@@ -157,6 +158,11 @@ export class SceneState {
         }
 
         if (this.lastPointer) this.updateSelection(this.lastPointer);
+    }
+    
+    public destroy() {
+        this.provider.destroy();
+        this.ydoc.destroy();
     }
 
     private intersectRay(
@@ -306,7 +312,6 @@ export class SceneState {
             let userData = this.users.get(id);
             if (!userData) {
                 // Add selection mesh for this user
-                console.log(state.username);
                 const mesh = this.getSelectionMesh(state.username);
                 if (state.selection) {
                     mesh.position.fromArray(state.selection);
@@ -359,7 +364,6 @@ function stringToColor(str: string): Color {
     }
 
     const h = Math.max(hash % 360, 0);
-    console.log(str, h);
     const s = 100;
     const l = 50;
     const colorHSL = `hsl(${h}, ${s}%, ${l}%)`;

@@ -9,6 +9,8 @@
     let controls = $state<OrbitControls>();
 </script>
 
+<svelte:window onbeforeunload={() => sceneState.destroy()} />
+
 {#if sceneState.ready}
     <SceneView {sceneState} bind:controls />
     <Toolbar {sceneState} onviewreset={() => controls && controls.reset()} />
