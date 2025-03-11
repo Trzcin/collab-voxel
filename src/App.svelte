@@ -2,10 +2,11 @@
     import type { OrbitControls } from 'three/examples/jsm/Addons.js';
     import SceneView from './components/SceneView.svelte';
     import Toolbar from './components/Toolbar.svelte';
-    import { SceneState } from './lib/SceneState.svelte';
+    import { SceneState, setSceneStateCtx } from './lib/SceneState.svelte';
     import Palette from './components/Palette.svelte';
 
     const sceneState = new SceneState(10);
+    setSceneStateCtx(sceneState);
 
     let controls = $state<OrbitControls>();
     let paletteOpen = $state(false);
@@ -16,14 +17,13 @@
 {#if sceneState.ready}
     <main>
         <div>
-            <SceneView {sceneState} bind:controls />
+            <SceneView bind:controls />
             <Toolbar
-                {sceneState}
                 onviewreset={() => controls && controls.reset()}
                 bind:paletteOpen
             />
         </div>
-        <Palette open={paletteOpen} {sceneState} />
+        <Palette open={paletteOpen} />
     </main>
 {:else}
     <h2>Connecting to server</h2>

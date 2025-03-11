@@ -13,6 +13,7 @@ import { SceneData } from './SceneData';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { ColorManager } from './ColorManager.svelte';
+import { getContext, setContext } from 'svelte';
 
 export class SceneState {
     public scene = new Scene();
@@ -357,6 +358,14 @@ export class SceneState {
         mesh.visible = false;
         return mesh;
     }
+}
+
+const sceneStateKey = Symbol('sceneState');
+export function setSceneStateCtx(sceneState: SceneState) {
+    setContext(sceneStateKey, sceneState);
+}
+export function getSceneStateCtx(): SceneState {
+    return getContext(sceneStateKey);
 }
 
 type UserData = { selectionMesh: Mesh };

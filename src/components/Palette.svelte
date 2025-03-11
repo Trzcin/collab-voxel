@@ -1,10 +1,10 @@
 <script lang="ts">
-    import type { SceneState } from '../lib/SceneState.svelte';
+    import { getSceneStateCtx } from '../lib/SceneState.svelte';
     import AddIcon from '../icons/add.svg';
     import ColorButton from './ColorButton.svelte';
 
-    let { open, sceneState }: { open: boolean; sceneState: SceneState } =
-        $props();
+    let { open }: { open: boolean } = $props();
+    const sceneState = getSceneStateCtx();
 
     let colorInput: HTMLInputElement;
 </script>
@@ -14,11 +14,7 @@
     <div class="colors">
         {#each sceneState.colorManager.palette as colorRow (colorRow)}
             {#each colorRow as color (color)}
-                <ColorButton
-                    {color}
-                    active={color === sceneState.colorManager.color}
-                    onclick={() => (sceneState.colorManager.color = color)}
-                />
+                <ColorButton {color} />
             {/each}
         {/each}
     </div>
@@ -27,8 +23,6 @@
         {#each sceneState.colorManager.customColors as color (color)}
             <ColorButton
                 {color}
-                active={color === sceneState.colorManager.color}
-                onclick={() => (sceneState.colorManager.color = color)}
                 onmiddleclick={() =>
                     sceneState.colorManager.deleteCustomColor(color)}
                 title={`${color} (Middle click to delete)`}

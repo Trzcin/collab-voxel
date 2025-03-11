@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { SceneState } from '../lib/SceneState.svelte';
+    import { getSceneStateCtx } from '../lib/SceneState.svelte';
     import AttachIcon from '../icons/attach.svg';
     import DeleteIcon from '../icons/delete.svg';
     import ReplaceIcon from '../icons/replace.svg';
@@ -12,10 +12,10 @@
     import PaletteIcon from '../icons/palette.svg';
 
     let {
-        sceneState,
         onviewreset,
-        paletteOpen = $bindable()
-    }: { sceneState: SceneState; onviewreset?: () => void; paletteOpen: boolean } = $props();
+        paletteOpen = $bindable(),
+    }: { onviewreset?: () => void; paletteOpen: boolean } = $props();
+    const sceneState = getSceneStateCtx();
 
     function handleKey(ev: KeyboardEvent) {
         if (ev.key === 'R') onviewreset?.();

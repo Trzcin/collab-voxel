@@ -1,13 +1,10 @@
 <script lang="ts">
     import { MOUSE, PerspectiveCamera, Vector2, WebGLRenderer } from 'three';
     import { OrbitControls } from 'three/examples/jsm/Addons.js';
-    import type { SceneState } from '../lib/SceneState.svelte';
-    import { vec2 } from 'three/tsl';
+    import { getSceneStateCtx } from '../lib/SceneState.svelte';
 
-    let {
-        sceneState,
-        controls = $bindable(),
-    }: { sceneState: SceneState; controls?: OrbitControls } = $props();
+    let { controls = $bindable() }: { controls?: OrbitControls } = $props();
+    const sceneState = getSceneStateCtx();
 
     let root: HTMLDivElement | undefined = $state();
     let rootSize = $state({ width: 0, height: 0 });

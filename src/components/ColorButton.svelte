@@ -1,17 +1,16 @@
 <script lang="ts">
+    import { getSceneStateCtx } from '../lib/SceneState.svelte';
+
     let {
         color,
-        active,
-        onclick,
         onmiddleclick,
         title,
     }: {
         color: string;
-        active: boolean;
-        onclick?: () => void;
         onmiddleclick?: () => void;
         title?: string;
     } = $props();
+    const sceneState = getSceneStateCtx();
 </script>
 
 <button
@@ -19,9 +18,9 @@
     style={`background: ${color}`}
     aria-label="Select color"
     title={title ?? color}
-    {onclick}
+    onclick={() => (sceneState.colorManager.color = color)}
     onauxclick={(ev) => ev.button === 1 && onmiddleclick?.()}
-    class:active
+    class:active={color === sceneState.colorManager.color}
 ></button>
 
 <style>
