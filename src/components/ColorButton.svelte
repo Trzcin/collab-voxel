@@ -4,11 +4,13 @@
         active,
         onclick,
         onmiddleclick,
+        title,
     }: {
         color: string;
         active: boolean;
         onclick?: () => void;
         onmiddleclick?: () => void;
+        title?: string;
     } = $props();
 </script>
 
@@ -16,7 +18,7 @@
     class="color"
     style={`background: ${color}`}
     aria-label="Select color"
-    title={color}
+    title={title ?? color}
     {onclick}
     onauxclick={(ev) => ev.button === 1 && onmiddleclick?.()}
     class:active

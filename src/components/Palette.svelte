@@ -31,6 +31,7 @@
                 onclick={() => (sceneState.colorManager.color = color)}
                 onmiddleclick={() =>
                     sceneState.colorManager.deleteCustomColor(color)}
+                title={`${color} (Middle click to delete)`}
             />
         {/each}
         <button
