@@ -1,4 +1,80 @@
-export const colors: string[][] = [
+import { storedState } from './storedState.svelte';
+
+/** Manages the currently selected color and the available color palettes */
+export class ColorManager {
+    private defaultColor = '#f8fafc';
+    private _color = $state(this.defaultColor);
+    private _palette = colors;
+    private _customColors = storedState<string[]>('customColors', []);
+
+    constructor() {
+        if (!this.validateColor(this.defaultColor)) {
+            console.warn(
+                `Default color ${this.defaultColor} not found in palette`,
+            );
+        }
+    }
+
+    get color() {
+        return this._color;
+    }
+
+    set color(newColor: string) {
+        if (!this.validateColor(newColor)) {
+            console.warn(
+                `Color ${newColor} not found in palette or custom colors, it will not be used.`,
+            );
+            return;
+        }
+
+        this._color = newColor;
+    }
+
+    get palette() {
+        return this._palette;
+    }
+
+    get customColors() {
+        return this._customColors.value;
+    }
+
+    /** Resets the color to it's default value */
+    resetColor() {
+        this._color = this.defaultColor;
+    }
+
+    addCustomColor(color: string) {
+        if (this._customColors.value.includes(color)) {
+            return;
+        }
+        this._customColors.value.push(color);
+    }
+
+    deleteCustomColor(color: string) {
+        const index = this._customColors.value.findIndex((c) => c === color);
+        if (index === -1) {
+            console.warn(
+                `Color ${color} not found in custom colors, cannot delete.`,
+            );
+            return;
+        }
+        this._customColors.value.splice(index, 1);
+        if (color === this._color) {
+            this.resetColor();
+        }
+    }
+
+    private validateColor(color: string): boolean {
+        const inPalette = this._palette.some((row) =>
+            row.some((c) => c === color),
+        );
+        const inCustomColors =
+            !inPalette && this._customColors.value.some((c) => c === color);
+        return inPalette || inCustomColors;
+    }
+}
+
+const colors: string[][] = [
     [
         '#450a0a',
         '#7f1d1d',

@@ -1,53 +1,36 @@
 <script lang="ts">
-    import { colors } from '../lib/colors';
     import type { SceneState } from '../lib/SceneState.svelte';
     import AddIcon from '../icons/add.svg';
-    import { storedState } from '../lib/storedState.svelte';
     import ColorButton from './ColorButton.svelte';
-    import { onMount } from 'svelte';
 
     let { open, sceneState }: { open: boolean; sceneState: SceneState } =
         $props();
 
-    const defaultColor = '#f8fafc';
-
-    let customColors = storedState<string[]>('customColors', []);
-
     let colorInput: HTMLInputElement;
-
-    onMount(() => {
-        sceneState.color = defaultColor;
-    });
 </script>
 
 <aside class:open>
     <h3>Color palette</h3>
     <div class="colors">
-        {#each colors as colorRow (colorRow)}
+        {#each sceneState.colorManager.palette as colorRow (colorRow)}
             {#each colorRow as color (color)}
                 <ColorButton
                     {color}
-                    active={color === sceneState.color}
-                    onclick={() => (sceneState.color = color)}
+                    active={color === sceneState.colorManager.color}
+                    onclick={() => (sceneState.colorManager.color = color)}
                 />
             {/each}
         {/each}
     </div>
     <h3 id="custom-colors">Custom colors</h3>
     <div class="colors">
-        {#each customColors.value as color (color)}
+        {#each sceneState.colorManager.customColors as color (color)}
             <ColorButton
                 {color}
-                active={color === sceneState.color}
-                onclick={() => (sceneState.color = color)}
-                onmiddleclick={() => {
-                    customColors.value = customColors.value.filter(
-                        (c) => c !== color,
-                    );
-                    if (color === sceneState.color) {
-                        sceneState.color = defaultColor;
-                    }
-                }}
+                active={color === sceneState.colorManager.color}
+                onclick={() => (sceneState.colorManager.color = color)}
+                onmiddleclick={() =>
+                    sceneState.colorManager.deleteCustomColor(color)}
             />
         {/each}
         <button
@@ -60,8 +43,8 @@
                 type="color"
                 bind:this={colorInput}
                 onchange={() => {
-                    customColors.value.push(colorInput.value);
-                    sceneState.color = colorInput.value;
+                    sceneState.colorManager.addCustomColor(colorInput.value);
+                    sceneState.colorManager.color = colorInput.value;
                 }}
             />
         </button>

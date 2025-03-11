@@ -12,6 +12,7 @@ import { BoundingBox } from './BoundingBox';
 import { SceneData } from './SceneData';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
+import { ColorManager } from './ColorManager.svelte';
 
 export class SceneState {
     public scene = new Scene();
@@ -23,7 +24,7 @@ export class SceneState {
     public mode = $state<Mode>('attach');
     public wireframe = $state(false);
     public showGrid = $state(true);
-    public color = $state('');
+    public colorManager = new ColorManager();
     private boundingBox?: BoundingBox;
     private voxelMesh: Mesh;
     private lastPointer?: Vector2;
@@ -153,7 +154,10 @@ export class SceneState {
         if (!this.selection) return;
 
         if (this.mode === 'attach' || this.mode === 'replace') {
-            this.data.setVoxel(this.selection, new Color(this.color));
+            this.data.setVoxel(
+                this.selection,
+                new Color(this.colorManager.color),
+            );
         } else if (this.mode === 'delete') {
             this.data.deleteVoxel(this.selection);
         }
