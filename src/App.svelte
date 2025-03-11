@@ -17,9 +17,13 @@
     <main>
         <div>
             <SceneView {sceneState} bind:controls />
-            <Toolbar {sceneState} onviewreset={() => controls && controls.reset()} bind:paletteOpen />
+            <Toolbar
+                {sceneState}
+                onviewreset={() => controls && controls.reset()}
+                bind:paletteOpen
+            />
         </div>
-        <Palette open={paletteOpen} />
+        <Palette open={paletteOpen} {sceneState} />
     </main>
 {:else}
     <h2>Connecting to server</h2>

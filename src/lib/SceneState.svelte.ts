@@ -23,6 +23,7 @@ export class SceneState {
     public mode = $state<Mode>('attach');
     public wireframe = $state(false);
     public showGrid = $state(true);
+    public color = $state('');
     private boundingBox?: BoundingBox;
     private voxelMesh: Mesh;
     private lastPointer?: Vector2;
@@ -152,7 +153,7 @@ export class SceneState {
         if (!this.selection) return;
 
         if (this.mode === 'attach' || this.mode === 'replace') {
-            this.data.setVoxel(this.selection, new Color(Color.NAMES.white));
+            this.data.setVoxel(this.selection, new Color(this.color));
         } else if (this.mode === 'delete') {
             this.data.deleteVoxel(this.selection);
         }
