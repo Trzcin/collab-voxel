@@ -45,7 +45,8 @@
                 ),
             );
         }
-        requestRender();
+        // Rerender immedietly to avoid flicker when resizing
+        renderer.render(sceneState.scene, camera);
     });
 
     let renderRequested = false;
