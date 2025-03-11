@@ -159,7 +159,7 @@ export class SceneState {
 
         if (this.lastPointer) this.updateSelection(this.lastPointer);
     }
-    
+
     public destroy() {
         this.provider.destroy();
         this.ydoc.destroy();

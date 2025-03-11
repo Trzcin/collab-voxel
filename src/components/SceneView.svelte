@@ -2,6 +2,7 @@
     import { MOUSE, PerspectiveCamera, Vector2, WebGLRenderer } from 'three';
     import { OrbitControls } from 'three/examples/jsm/Addons.js';
     import type { SceneState } from '../lib/SceneState.svelte';
+    import { vec2 } from 'three/tsl';
 
     let {
         sceneState,
@@ -10,6 +11,7 @@
 
     let root: HTMLDivElement | undefined = $state();
     let rootSize = $state({ width: 0, height: 0 });
+    let lastMouseCords: [number, number] | undefined;
 
     const renderer = new WebGLRenderer();
     const camera = new PerspectiveCamera(45, 1, 1, 10000);
@@ -35,6 +37,14 @@
         camera.aspect = rootSize.width / rootSize.height;
         camera.updateProjectionMatrix();
         sceneState.cameraUpdate();
+        if (lastMouseCords) {
+            sceneState.updateSelection(
+                new Vector2(
+                    (lastMouseCords[0] / rootSize.width) * 2 - 1,
+                    (lastMouseCords[1] / rootSize.height) * -2 + 1,
+                ),
+            );
+        }
         requestRender();
     });
 
@@ -58,6 +68,7 @@
     sceneState.onChange = requestRender;
 
     function handlePointerMove(ev: PointerEvent) {
+        lastMouseCords = [ev.clientX, ev.clientY];
         sceneState.updateSelection(
             new Vector2(
                 (ev.clientX / rootSize.width) * 2 - 1,
@@ -74,7 +85,10 @@
     bind:clientWidth={rootSize.width}
     bind:clientHeight={rootSize.height}
     onpointermove={handlePointerMove}
-    onpointerleave={() => sceneState.clearSelection()}
+    onpointerleave={() => {
+        sceneState.clearSelection();
+        lastMouseCords = undefined;
+    }}
     onclick={() => sceneState.actOnSelection()}
 ></div>
 
