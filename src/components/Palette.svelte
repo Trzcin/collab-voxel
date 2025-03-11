@@ -73,7 +73,6 @@
         height: 100%;
         background: #222;
         overflow-y: auto;
-        padding: 1rem;
         width: 0;
         --sidebar-width: 350px;
         transform: translateX(var(--sidebar-width));
@@ -83,6 +82,7 @@
     .open {
         width: var(--sidebar-width);
         transform: translateX(0);
+        padding: 1rem;
     }
 
     .colors {
