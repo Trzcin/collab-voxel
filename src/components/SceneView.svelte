@@ -24,6 +24,15 @@
     controls.saveState();
     sceneState.camera = camera;
 
+    function updateSelection(mouseCords: [number, number]) {
+        sceneState.updateSelection(
+            new Vector2(
+                (mouseCords[0] / rootSize.width) * 2 - 1,
+                (mouseCords[1] / rootSize.height) * -2 + 1,
+            ),
+        );
+    }
+
     $effect(() => {
         if (!root || !sceneState.ready) return;
         root.appendChild(renderer.domElement);
@@ -35,12 +44,7 @@
         camera.updateProjectionMatrix();
         sceneState.cameraUpdate();
         if (lastMouseCords) {
-            sceneState.updateSelection(
-                new Vector2(
-                    (lastMouseCords[0] / rootSize.width) * 2 - 1,
-                    (lastMouseCords[1] / rootSize.height) * -2 + 1,
-                ),
-            );
+            updateSelection(lastMouseCords);
         }
         // Rerender immedietly to avoid flicker when resizing
         renderer.render(sceneState.scene, camera);
@@ -62,17 +66,19 @@
     controls.addEventListener('change', () => {
         sceneState.cameraUpdate();
         requestRender();
+        setTimeout(() => {
+            if (lastMouseCords) {
+                // Update selection in the next event loop cycle
+                updateSelection(lastMouseCords);
+            }
+        });
     });
     sceneState.onChange = requestRender;
 
     function handlePointerMove(ev: PointerEvent) {
-        lastMouseCords = [ev.clientX, ev.clientY];
-        sceneState.updateSelection(
-            new Vector2(
-                (ev.clientX / rootSize.width) * 2 - 1,
-                (ev.clientY / rootSize.height) * -2 + 1,
-            ),
-        );
+        const mouseCoords = [ev.clientX, ev.clientY] as [number, number];
+        updateSelection(mouseCoords);
+        lastMouseCords = mouseCoords;
     }
 </script>
 
