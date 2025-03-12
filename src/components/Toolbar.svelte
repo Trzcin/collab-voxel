@@ -95,6 +95,11 @@
             <input type="checkbox" bind:checked={paletteOpen} />
             <img src={PaletteIcon} alt="palette" />
         </label>
+        <div
+            class="color"
+            style:background={sceneState.colorManager.color}
+            title={`Current color: ${sceneState.colorManager.color}`}
+        ></div>
     </section>
 </div>
 
@@ -156,5 +161,12 @@
         height: 100%;
         background-color: #aaa;
         margin: 0 1rem;
+    }
+
+    .color {
+        width: 24px;
+        aspect-ratio: 1;
+        border-radius: 10%;
+        margin: 0.5rem;
     }
 </style>

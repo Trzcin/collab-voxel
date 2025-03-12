@@ -15,7 +15,7 @@
 
 <button
     class="color"
-    style={`background: ${color}`}
+    style:background={color}
     aria-label="Select color"
     title={title ?? color}
     onclick={() => (sceneState.colorManager.color = color)}
