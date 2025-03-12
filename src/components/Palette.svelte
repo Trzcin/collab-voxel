@@ -95,6 +95,7 @@
     }
 
     input {
-        display: none;
+        visibility: hidden;
+        position: absolute;
     }
 </style>

@@ -25,4 +25,5 @@ body {
     width: 100vw;
     height: 100vh;
     place-items: center;
+    overflow: hidden;
 }
