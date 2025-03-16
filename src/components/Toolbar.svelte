@@ -115,6 +115,11 @@
         display: flex;
         align-items: center;
         height: 4.5rem;
+        width: max-content;
+    }
+
+    * {
+        flex-shrink: 0;
     }
 
     section {
