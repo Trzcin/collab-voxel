@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="./public/favicon.svg" style="width: 120px;" alt="Collab Voxel"/>
+</p>
+
 # Collab Voxel
 
 A collaborative voxel editor based on WebGL built with Svelte, Three.js and Y.js.
