@@ -6,7 +6,7 @@ There is a demo using the BroadcastChannel API available [here](https://trzcin.g
 
 ## Demo
 
-![demo](./git-assets/voxel-demo.gif)
+![demo](./git-assets/voxel-demo.webp)
 
 ## How to use
 
