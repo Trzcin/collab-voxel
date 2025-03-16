@@ -51,7 +51,7 @@ npm run dev
 
 ## Collaboration mode
 
-To make the app use the WebSocket server set the following environment variable:
+To make the app use the WebSocket server set the following environment variables:
 
 ```bash
 VITE_LOCAL=false
