@@ -6,6 +6,8 @@ There is a demo using the BroadcastChannel API available [here](https://trzcin.g
 
 ## Demo
 
+[voxel-demo.webm](https://github.com/user-attachments/assets/71751e70-a10b-404b-a9ae-081eea6ee3a2)
+
 ## How to use
 
 - `Left click` - place voxel at mouse position
